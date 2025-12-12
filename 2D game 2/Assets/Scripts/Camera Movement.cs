@@ -25,18 +25,7 @@ public class CameraMovement : MonoBehaviour
         }
     }
 
-    public void OnCameraZoomIn()
-    {
-        m_cam.orthographicSize = 4f;
-        m_moveCamera = true;
 
-    }
-
-    public void OnCameraZoomOut()
-    {
-        m_cam.orthographicSize = 8f;
-        m_moveCamera = false;
-    }
 
     // Update is called once per frame
     void Update()
@@ -45,10 +34,7 @@ public class CameraMovement : MonoBehaviour
         {
             MoveCameraToTarget();
         }
-        else
-        {
 
-        }
 
     }
 
@@ -65,25 +51,6 @@ public class CameraMovement : MonoBehaviour
             m_cam.transform.position.z);
 
         m_cam.transform.position = _finalPos;
-    }
-
-
-
-    public void ResetCameraPos(bool _bool)
-    {
-        if (_bool)
-        {
-            m_previousCameraPosition = m_cam.transform.position;
-            m_cam.transform.position = new Vector3(0, 0, m_cam.transform.position.z);
-
-            Time.timeScale = 0f;
-        }
-        else
-        {
-            m_cam.transform.position = m_previousCameraPosition;
-
-            Time.timeScale = 1.0f;
-        }
     }
 
     public void CalculateCameraOffset(GameObject _target)

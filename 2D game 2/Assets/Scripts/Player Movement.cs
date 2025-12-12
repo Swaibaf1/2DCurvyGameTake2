@@ -5,7 +5,6 @@ using UnityEditorInternal;
 public class PlayerMovement : MonoBehaviour
 {
 
-
     #region variables 
     [Header("Move Speed Variables")]
 
@@ -46,15 +45,14 @@ public class PlayerMovement : MonoBehaviour
 
 
     [SerializeField] GameObject m_sprite;
-    
 
+    bool m_isBackFlipping = false;
 
     #endregion
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
         m_rb = this.GetComponent<Rigidbody2D>();
         m_gravityDirection = Vector2.down;
     }
@@ -142,9 +140,9 @@ public class PlayerMovement : MonoBehaviour
     void RotateDirection()
     {
 
-        RaycastHit2D rayLeft = Physics2D.Raycast(m_raycastPointLeft.position, -transform.up, 1.5f);
+        RaycastHit2D rayLeft = Physics2D.Raycast(m_raycastPointLeft.position, -transform.up, 1f);
 
-        RaycastHit2D rayRight = Physics2D.Raycast(m_raycastPointRight.position, -transform.up, 1.5f);
+        RaycastHit2D rayRight = Physics2D.Raycast(m_raycastPointRight.position, -transform.up, 1f);
 
         if (rayLeft && rayRight)
         {
@@ -157,15 +155,25 @@ public class PlayerMovement : MonoBehaviour
 
             transform.up = _planeVectorNormal;
 
+            m_isBackFlipping = false;
 
 
         }
         else
         {
+            
             transform.up = Vector2.up;
+            
+            if(!m_isBackFlipping)
+            {
+                StartCoroutine(BackflipSprite());
+                m_isBackFlipping = true;
+            }
         }
 
         m_gravityDirection = -transform.up;
+
+
     }
     IEnumerator Deccelarate(float _decrementValue)
     {
@@ -184,6 +192,19 @@ public class PlayerMovement : MonoBehaviour
         m_decelarating = false;
     }
 
+    IEnumerator BackflipSprite()
+    {
+        if(m_isBackFlipping)
+        {
+            float i = 0;
+
+            //Lerp GAMEOBJECT NOT SPRITE transform.rotation to 0
+            //IF you become grounded when the player is in the middle of a backflip, cancel the blackflip and continue moving
+            //while m_isBackFlipping
+            yield return null;
+        }
+    }
+
     void FlipSprite()
     {
         if(m_moveValue.x < 0)
@@ -199,6 +220,7 @@ public class PlayerMovement : MonoBehaviour
 
 
     }
+
 
     public void OnPlayerMove(InputAction.CallbackContext _context)
     {
@@ -228,7 +250,7 @@ public class PlayerMovement : MonoBehaviour
         if (_context.canceled && m_rb.linearVelocityY > 0f)
         {
 
-            m_rb.linearVelocityY = m_rb.linearVelocityY * 0.2f;
+            m_rb.linearVelocityY = m_rb.linearVelocityY * 0.3f;
 
 
             m_coyoteTimeCounter = 0f;
