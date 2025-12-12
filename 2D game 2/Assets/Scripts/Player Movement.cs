@@ -48,13 +48,19 @@ public class PlayerMovement : MonoBehaviour
 
     bool m_isBackFlipping = false;
 
+    Transform m_transform;
+
+
     #endregion
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        m_transform = this.transform;
         m_rb = this.GetComponent<Rigidbody2D>();
         m_gravityDirection = Vector2.down;
+        
+
     }
 
 
@@ -100,7 +106,7 @@ public class PlayerMovement : MonoBehaviour
 
         m_rb.linearVelocity -= _finalGravity;
 
-        m_rb.linearVelocity += new Vector2(transform.right.x, transform.right.y) * _moveForce;
+        m_rb.linearVelocity += new Vector2(m_transform.right.x, m_transform.right.y) * _moveForce;
         
        
 
@@ -108,41 +114,12 @@ public class PlayerMovement : MonoBehaviour
         RotateDirection();
     }
 
-    void BaseMovement(float _accelarateSpeed, float _decelarateIncrement, Vector2 _velocityToAdd)
-    {
-        if (m_moveValue.x != 0)
-        {
-            if (Mathf.Sign(m_rb.linearVelocityX) != Mathf.Sign(m_moveValue.x))
-            {
-                _velocityToAdd = new Vector2(m_moveValue.x * _accelarateSpeed * 2, 0);
-
-                //m_rb.AddForce(new Vector2(m_moveValue.x * _accelarateSpeed * 6, 0));
-            }
-            else
-            {
-                _velocityToAdd = new Vector2(m_moveValue.x * _accelarateSpeed, 0);
-                //m_rb.AddForce(new Vector2(m_moveValue.x * _accelarateSpeed, 0));
-            }
-        }
-        else if (m_rb.linearVelocityX != 0)
-        {
-
-            if (!m_decelarating)
-            {
-                StartCoroutine(Deccelarate(_decelarateIncrement));
-            }
-
-
-        }
-    }
-
-
     void RotateDirection()
     {
 
-        RaycastHit2D rayLeft = Physics2D.Raycast(m_raycastPointLeft.position, -transform.up, 1f);
+        RaycastHit2D rayLeft = Physics2D.Raycast(m_raycastPointLeft.position, -m_transform.up, 1f);
 
-        RaycastHit2D rayRight = Physics2D.Raycast(m_raycastPointRight.position, -transform.up, 1f);
+        RaycastHit2D rayRight = Physics2D.Raycast(m_raycastPointRight.position, -m_transform.up, 1f);
 
         if (rayLeft && rayRight)
         {
@@ -153,7 +130,7 @@ public class PlayerMovement : MonoBehaviour
 
             Vector2 _planeVectorNormal = new Vector2(-_planeVector.y, _planeVector.x);
 
-            transform.up = _planeVectorNormal;
+            m_transform.up = _planeVectorNormal;
 
             m_isBackFlipping = false;
 
@@ -162,7 +139,7 @@ public class PlayerMovement : MonoBehaviour
         else
         {
             
-            transform.up = Vector2.up;
+            m_transform.up = Vector2.up;
             
             if(!m_isBackFlipping)
             {
@@ -171,7 +148,7 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        m_gravityDirection = -transform.up;
+        m_gravityDirection = -m_transform.up;
 
 
     }
@@ -184,7 +161,7 @@ public class PlayerMovement : MonoBehaviour
         while (m_moveValue.x == 0 && m_rb.linearVelocityX != 0)
         {
 
-            m_rb.linearVelocity = transform.right * _decrementValue;
+            m_rb.linearVelocity = m_transform.right * _decrementValue;
             yield return new WaitForSeconds(0.01f);
         }
 
@@ -217,10 +194,7 @@ public class PlayerMovement : MonoBehaviour
         }
 
 
-
-
     }
-
 
     public void OnPlayerMove(InputAction.CallbackContext _context)
     {
