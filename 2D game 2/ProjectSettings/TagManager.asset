@@ -47,5 +47,11 @@ TagManager:
   - name: Debug
     uniqueID: 2995923131
     locked: 0
+  - name: Threats
+    uniqueID: 3378839391
+    locked: 0
+  - name: Platforms
+    uniqueID: 45230235
+    locked: 0
   m_RenderingLayers:
   - Default

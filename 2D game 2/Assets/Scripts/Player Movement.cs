@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
-using UnityEditorInternal;
+
 public class PlayerMovement : MonoBehaviour
 {
 
@@ -9,10 +9,12 @@ public class PlayerMovement : MonoBehaviour
     [Header("Move Speed Variables")]
 
     [SerializeField] float m_accelarateSpeed;
+    [SerializeField] float m_defaultDamping;
+    [SerializeField] float m_noInputDamping;
     [SerializeField] float m_airDamping;
-    [SerializeField] float m_slopeSpeed;
     [SerializeField] float m_jumpForce;
     bool m_decelarating = false;
+
 
     [SerializeField] float m_extraGravityValue;
 
@@ -37,6 +39,9 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float m_jumpBufferTime;
     float m_jumpBufferCounter;
 
+
+    [Header("Misc")]
+
     bool m_isGrounded;
     [SerializeField] bool m_canMove = true;
 
@@ -50,6 +55,7 @@ public class PlayerMovement : MonoBehaviour
 
     Transform m_transform;
 
+    [SerializeField] Transform m_respawnTransform;
 
     #endregion
 
@@ -59,14 +65,17 @@ public class PlayerMovement : MonoBehaviour
         m_transform = this.transform;
         m_rb = this.GetComponent<Rigidbody2D>();
         m_gravityDirection = Vector2.down;
+        Respawn();
         
-
     }
 
 
 
     void FixedUpdate()
     {
+
+        CheckForThreats();
+
         float _extraGravityForce = 0f;
 
         if (Physics2D.Raycast(m_groundCheckLeft.position, m_gravityDirection, 0.5f, m_groundLayer)
@@ -99,7 +108,7 @@ public class PlayerMovement : MonoBehaviour
         }
 
 
-        print(m_rb.linearVelocity.magnitude);
+       
 
         Vector2 _finalGravity = _extraGravityForce * m_gravityDirection;
 
@@ -108,18 +117,29 @@ public class PlayerMovement : MonoBehaviour
 
         m_rb.linearVelocity += new Vector2(m_transform.right.x, m_transform.right.y) * _moveForce;
         
-       
-
+        
 
         RotateDirection();
+    }
+
+    void CheckForThreats()
+    {
+        if(Physics2D.OverlapBox(m_transform.position, new Vector2(1,1), 0, m_threatLayer))
+        {
+            Respawn();
+        }
+    }
+    void Respawn()
+    {
+        m_transform.position = m_respawnTransform.position;
     }
 
     void RotateDirection()
     {
 
-        RaycastHit2D rayLeft = Physics2D.Raycast(m_raycastPointLeft.position, -m_transform.up, 1f);
+        RaycastHit2D rayLeft = Physics2D.Raycast(m_raycastPointLeft.position, -m_transform.up, 1f, m_groundLayer);
 
-        RaycastHit2D rayRight = Physics2D.Raycast(m_raycastPointRight.position, -m_transform.up, 1f);
+        RaycastHit2D rayRight = Physics2D.Raycast(m_raycastPointRight.position, -m_transform.up, 1f, m_groundLayer);
 
         if (rayLeft && rayRight)
         {
@@ -130,9 +150,8 @@ public class PlayerMovement : MonoBehaviour
 
             Vector2 _planeVectorNormal = new Vector2(-_planeVector.y, _planeVector.x);
 
-            m_transform.up = _planeVectorNormal;
 
-            m_isBackFlipping = false;
+            m_transform.up = _planeVectorNormal;
 
 
         }
@@ -140,12 +159,7 @@ public class PlayerMovement : MonoBehaviour
         {
             
             m_transform.up = Vector2.up;
-            
-            if(!m_isBackFlipping)
-            {
-                StartCoroutine(BackflipSprite());
-                m_isBackFlipping = true;
-            }
+           
         }
 
         m_gravityDirection = -m_transform.up;
@@ -155,7 +169,7 @@ public class PlayerMovement : MonoBehaviour
     IEnumerator Deccelarate(float _decrementValue)
     {
         m_decelarating = true;
-        float i = 0;
+      
         float _currentVelocity = m_rb.linearVelocity.magnitude;
 
         while (m_moveValue.x == 0 && m_rb.linearVelocityX != 0)
@@ -184,28 +198,32 @@ public class PlayerMovement : MonoBehaviour
 
     void FlipSprite()
     {
-        if(m_moveValue.x < 0)
+        if (m_moveValue.x < 0)
         {
-            m_sprite.transform.localRotation = new Quaternion(0,180,0,0);
+            m_sprite.transform.localRotation = new Quaternion(0, 180, 0, 0);
         }
-        else if(m_moveValue.x > 0)
+        else if (m_moveValue.x > 0)
         {
             m_sprite.transform.localRotation = Quaternion.identity;
         }
 
 
+
     }
+
 
     public void OnPlayerMove(InputAction.CallbackContext _context)
     {
         if (_context.started)
         {
             m_moveValue.x = _context.ReadValue<Vector2>().x;
+            m_rb.linearDamping = m_defaultDamping;
         }
 
         if (_context.canceled)
         {
             m_moveValue.x = 0f;
+            m_rb.linearDamping = m_noInputDamping;
         }
 
     }
